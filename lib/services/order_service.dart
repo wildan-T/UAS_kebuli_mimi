@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:kebuli_mimi/models/order_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,20 +22,43 @@ class OrderService {
     return (response as List).map((json) => Order.fromJson(json)).toList();
   }
 
-  Future<void> createOrder(
-    Order order,
+  // Mengubah return type menjadi Future<Order>
+  Future<Order> createOrder(
+    Map<String, dynamic> orderData,
     List<Map<String, dynamic>> orderDetails,
   ) async {
-    await _client.rpc(
-      'create_order_with_details',
-      params: {'order_data': order.toJson(), 'order_details': orderDetails},
-    );
+    // Memanggil RPC dan mengambil data yang baru dibuat
+    final response =
+        await _client
+            .rpc(
+              'create_order_with_details',
+              params: {'order_data': orderData, 'order_details': orderDetails},
+            )
+            .select()
+            .single(); // .single() untuk mendapatkan satu baris data
+
+    // Mengembalikan data sebagai objek Order
+    return Order.fromJson(response);
   }
 
-  Future<void> updateOrderStatus(String orderId, String newStatus) async {
-    await _client
-        .from('orders')
-        .update({'status': newStatus})
-        .eq('id', orderId);
+  // Fungsi baru untuk upload bukti pembayaran
+  Future<String> uploadPaymentProof(File imageFile) async {
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}.${imageFile.path.split('.').last}';
+    await _client.storage.from('payment.image').upload(fileName, imageFile);
+    return _client.storage.from('payment.image').getPublicUrl(fileName);
+  }
+
+  // Memperbarui status dan foto pembayaran
+  Future<void> updateOrderPayment({
+    required int orderId,
+    required String newStatus,
+    String? paymentImageUrl,
+  }) async {
+    final updates = {'status': newStatus};
+    if (paymentImageUrl != null) {
+      updates['foto_pembayaran'] = paymentImageUrl;
+    }
+    await _client.from('orders').update(updates).eq('id', orderId);
   }
 }

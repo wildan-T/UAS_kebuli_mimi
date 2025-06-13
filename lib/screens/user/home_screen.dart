@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kebuli_mimi/screens/user/cart_screen.dart';
 import 'package:kebuli_mimi/screens/user/menu_list.dart';
 import 'package:kebuli_mimi/screens/user/order_history.dart';
 import 'package:kebuli_mimi/screens/user/profile_screen.dart';
@@ -14,21 +15,56 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    const MenuListScreen(),
+    MenuListScreen(), // Dibuat tidak const untuk pembaruan
     const OrderHistoryScreen(),
     const ProfileScreen(),
   ];
 
   final List<String> _pageTitles = [
-    'Menu Kebuli Mimi',
+    'Menu Kebuli Mimi', // Judul ini tidak akan terpakai di AppBar baru
     'Riwayat Pesanan',
     'Profil Saya',
   ];
 
+  // Fungsi untuk membangun AppBar dinamis
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    if (_currentIndex == 0) {
+      // AppBar kustom untuk halaman menu
+      return AppBar(
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Kebuli Mimi'),
+            Text(
+              'Masakan Timur Tengah Asli',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
+            },
+          ),
+        ],
+        centerTitle: false,
+      );
+    } else {
+      // AppBar default untuk halaman lain
+      return AppBar(title: Text(_pageTitles[_currentIndex]));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_pageTitles[_currentIndex])),
+      appBar: _buildAppBar(context),
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -43,15 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
       ),
-      floatingActionButton:
-          _currentIndex == 0
-              ? FloatingActionButton(
-                onPressed: () {
-                  // Arahkan ke halaman keranjang (cart)
-                },
-                child: const Icon(Icons.shopping_cart),
-              )
-              : null,
+      // floatingActionButton sudah dihapus
     );
   }
 }

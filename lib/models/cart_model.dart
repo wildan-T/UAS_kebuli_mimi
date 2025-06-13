@@ -24,9 +24,12 @@ class Cart extends ChangeNotifier {
     } else {
       _items.add(CartItem(menu: menu));
     }
+    // Memberi tahu listener agar UI diperbarui
+    notifyListeners();
   }
 
-  void removeItem(String menuId) {
+  // Tipe data diubah menjadi 'int' agar sesuai dengan model Menu
+  void removeItem(int menuId) {
     final index = _items.indexWhere((item) => item.menu.id == menuId);
     if (index >= 0) {
       if (_items[index].quantity > 1) {
@@ -34,10 +37,14 @@ class Cart extends ChangeNotifier {
       } else {
         _items.removeAt(index);
       }
+      // Memberi tahu listener agar UI diperbarui
+      notifyListeners();
     }
   }
 
   void clear() {
     _items.clear();
+    // Memberi tahu listener agar UI diperbarui
+    notifyListeners();
   }
 }

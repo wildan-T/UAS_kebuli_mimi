@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kebuli_mimi/services/auth_service.dart';
+import 'package:kebuli_mimi/services/order_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kebuli_mimi/models/cart_model.dart';
 import 'package:kebuli_mimi/screens/auth/login_screen.dart';
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => Cart()),
         ChangeNotifierProvider(create: (_) => AuthService()),
+        Provider(create: (_) => OrderService()),
         // Add other providers here
       ],
       child: MaterialApp(

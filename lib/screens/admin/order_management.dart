@@ -3,6 +3,7 @@ import 'package:kebuli_mimi/models/order_model.dart';
 import 'package:kebuli_mimi/services/order_service.dart';
 import 'package:kebuli_mimi/widgets/order_card.dart';
 import 'package:kebuli_mimi/widgets/loading_indicator.dart';
+import 'package:provider/provider.dart';
 
 class OrderManagementScreen extends StatefulWidget {
   const OrderManagementScreen({super.key});
@@ -12,7 +13,7 @@ class OrderManagementScreen extends StatefulWidget {
 }
 
 class _OrderManagementScreenState extends State<OrderManagementScreen> {
-  final OrderService _orderService = OrderService();
+  late OrderService _orderService;
   List<Order> _orders = [];
   bool _isLoading = true;
   String _filterStatus = 'all';
@@ -20,6 +21,8 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   @override
   void initState() {
     super.initState();
+    // Mengambil instance OrderService dari Provider
+    _orderService = Provider.of<OrderService>(context, listen: false);
     _loadOrders();
   }
 
@@ -28,24 +31,48 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
     try {
       _orders = await _orderService.getAllOrders();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load orders: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat pesanan: ${e.toString()}')),
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  Future<void> _updateOrderStatus(String orderId, String newStatus) async {
+  // --- FUNGSI INI DIPERBAIKI ---
+  // 1. Tipe data orderId diubah menjadi int
+  Future<void> _updateOrderStatus(int orderId, String newStatus) async {
     try {
-      await _orderService.updateOrderStatus(orderId, newStatus);
-      _loadOrders();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update order: ${e.toString()}')),
+      // 2. Memanggil fungsi updateOrderPayment yang benar dari service
+      await _orderService.updateOrderPayment(
+        orderId: orderId,
+        newStatus: newStatus,
       );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Status pesanan #$orderId berhasil diubah menjadi $newStatus.',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      _loadOrders(); // Muat ulang daftar pesanan untuk melihat perubahan
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memperbarui status: ${e.toString()}')),
+        );
+      }
     }
   }
+  // -------------------------
 
   List<Order> get _filteredOrders {
     if (_filterStatus == 'all') return _orders;
@@ -56,7 +83,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Management'),
+        title: const Text('Manajemen Pesanan'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadOrders),
         ],
@@ -64,11 +91,12 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
+            padding: const EdgeInsets.all(16.0),
+            child: DropdownButtonFormField<String>(
               value: _filterStatus,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
               items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Orders')),
+                DropdownMenuItem(value: 'all', child: Text('Semua Pesanan')),
                 DropdownMenuItem(value: 'pending', child: Text('Pending')),
                 DropdownMenuItem(
                   value: 'processing',
@@ -78,9 +106,9 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                 DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
               ],
               onChanged: (value) {
-                setState(() {
-                  _filterStatus = value!;
-                });
+                if (value != null) {
+                  setState(() => _filterStatus = value);
+                }
               },
             ),
           ),
@@ -97,6 +125,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                           return OrderCard(
                             order: order,
                             isAdmin: true,
+                            // Pemanggilan fungsi sekarang sudah benar
                             onStatusChanged: (newStatus) {
                               _updateOrderStatus(order.id, newStatus);
                             },
