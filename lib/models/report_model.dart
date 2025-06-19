@@ -20,3 +20,23 @@ class MonthlyReport {
     );
   }
 }
+
+class DailyReport {
+  final int day;
+  final double totalSales;
+  final int totalOrders;
+
+  DailyReport({
+    required this.day,
+    required this.totalSales,
+    required this.totalOrders,
+  });
+
+  factory DailyReport.fromJson(Map<String, dynamic> json) {
+    return DailyReport(
+      day: json['day'],
+      totalSales: (json['total_sales'] ?? 0).toDouble(),
+      totalOrders: json['total_orders'] ?? 0,
+    );
+  }
+}

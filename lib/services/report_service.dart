@@ -13,4 +13,14 @@ class ReportService {
         .map((json) => MonthlyReport.fromJson(json))
         .toList();
   }
+
+  Future<List<DailyReport>> getDailyReports(int year, int month) async {
+    final response = await _client.rpc(
+      'get_daily_reports_for_month',
+      params: {'target_year': year, 'target_month': month},
+    );
+    return (response as List)
+        .map((json) => DailyReport.fromJson(json))
+        .toList();
+  }
 }

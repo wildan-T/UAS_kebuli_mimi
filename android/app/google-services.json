@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "96736326236",
+    "project_id": "kebulimimi-dae0d",
+    "storage_bucket": "kebulimimi-dae0d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:96736326236:android:1fb70fd27401f5c247ac99",
+        "android_client_info": {
+          "package_name": "com.ffwant.kebuli_mimi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "96736326236-t9fpfvckviva7enprmnrnm6oq167pkno.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNdjW7xiAPEPebQUvxUPJKYzkmH8fEXHY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "96736326236-t9fpfvckviva7enprmnrnm6oq167pkno.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

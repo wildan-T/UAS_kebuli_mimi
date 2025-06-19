@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
+            color: Colors.white,
             onPressed: () {
               Navigator.push(
                 context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kebuli_mimi/models/order_model.dart';
+import 'package:kebuli_mimi/screens/user/order_detail_screen.dart';
 import 'package:kebuli_mimi/services/auth_service.dart';
 import 'package:kebuli_mimi/services/order_service.dart';
 import 'package:kebuli_mimi/widgets/order_card.dart';
@@ -72,9 +73,28 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         padding: const EdgeInsets.all(16.0),
         itemCount: _orders.length,
         itemBuilder: (context, index) {
+          final order = _orders[index];
           return Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
-            child: OrderCard(order: _orders[index]),
+            // Tambahkan onTap di sini
+            child: OrderCard(
+              order: _orders[index],
+              onTap: () async {
+                // Jadikan async
+                // Tunggu hasil dari halaman detail
+                final shouldRefresh = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrderDetailScreen(order: order),
+                  ),
+                );
+
+                // Jika halaman detail mengirim sinyal 'true', refresh daftar
+                if (shouldRefresh == true && mounted) {
+                  _loadOrders();
+                }
+              },
+            ),
           );
         },
       ),

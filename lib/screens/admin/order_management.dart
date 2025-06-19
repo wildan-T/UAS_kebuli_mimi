@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kebuli_mimi/models/order_model.dart';
+import 'package:kebuli_mimi/screens/admin/admin_order_detail_screen.dart';
 import 'package:kebuli_mimi/services/order_service.dart';
 import 'package:kebuli_mimi/widgets/order_card.dart';
 import 'package:kebuli_mimi/widgets/loading_indicator.dart';
@@ -128,6 +129,19 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                             // Pemanggilan fungsi sekarang sudah benar
                             onStatusChanged: (newStatus) {
                               _updateOrderStatus(order.id, newStatus);
+                            },
+                            onTap: () async {
+                              final refreshed = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          AdminOrderDetailScreen(order: order),
+                                ),
+                              );
+                              if (refreshed == true && mounted) {
+                                _loadOrders();
+                              }
                             },
                           );
                         },

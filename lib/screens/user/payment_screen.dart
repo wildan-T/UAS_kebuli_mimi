@@ -143,6 +143,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         width: 24,
                         child: CircularProgressIndicator(color: Colors.white),
                       )
+                      : widget.order.metodePembayaran == 'COD'
+                      ? const Text('Selesai')
                       : const Text('Konfirmasi Pembayaran'),
             ),
           ],

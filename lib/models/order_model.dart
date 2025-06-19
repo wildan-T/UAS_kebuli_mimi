@@ -8,7 +8,12 @@ class Order {
   final String status;
   final DateTime createdAt;
   final List<OrderDetail>? orderDetails;
-  final String? fotoPembayaran; // Kolom baru ditambahkan
+  final String? fotoPembayaran;
+  final String? alamat;
+  final String? catatanAlamat;
+  final String? catatanPesanan;
+  final double? latitude;
+  final double? longitude;
 
   Order({
     required this.id,
@@ -19,17 +24,27 @@ class Order {
     required this.createdAt,
     this.orderDetails,
     this.fotoPembayaran, // Ditambahkan di constructor
+    this.alamat,
+    this.catatanAlamat,
+    this.catatanPesanan,
+    this.latitude,
+    this.longitude,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      id: json['id'], // Tipe data sudah int
+      id: json['id'],
       idUser: json['id_user'].toString(),
       harga: json['harga'].toDouble(),
       metodePembayaran: json['metode_pembayaran'],
       status: json['status'],
-      createdAt: DateTime.parse(json['created_at']),
-      fotoPembayaran: json['foto_pembayaran'], // Ditambahkan
+      createdAt: DateTime.parse('${json['created_at']}Z').toLocal(),
+      fotoPembayaran: json['foto_pembayaran'],
+      alamat: json['alamat'],
+      catatanAlamat: json['catatan_alamat'],
+      catatanPesanan: json['catatan_pesanan'],
+      latitude: json['latitude']?.toDouble(),
+      longitude: json['longitude']?.toDouble(),
       orderDetails:
           json['order_detail'] != null
               ? (json['order_detail'] as List)
