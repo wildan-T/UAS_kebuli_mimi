@@ -6,6 +6,7 @@ import 'package:kebuli_mimi/screens/user/payment_screen.dart';
 import 'package:kebuli_mimi/services/auth_service.dart';
 import 'package:kebuli_mimi/services/order_service.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -24,12 +25,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _orderNotesController = TextEditingController();
   String _paymentMethod = 'Transfer';
   bool _isLoading = false;
-  // State untuk lokasi
-  LatLng? _pickedLocation;
-  double? _distanceInKm;
 
-  // Lokasi Toko (ganti dengan koordinat asli toko Anda)
+  // --- State untuk lokasi dan ongkir ---
+  LatLng? _pickedLocation;
+  double _distanceInKm = 0.0;
+  double _deliveryFee = 0.0; // Ongkir
+
+  // --- KONFIGURASI TOKO & ONGKIR ---
+  // Ganti dengan koordinat asli toko Anda
   static const LatLng _storeLocation = LatLng(-6.168806, 106.595926);
+  // Atur harga per kilometer
+  static const double _pricePerKm = 2500.0;
 
   @override
   void initState() {
@@ -78,6 +84,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _storeLocation,
         _pickedLocation!,
       );
+      _deliveryFee = _distanceInKm * _pricePerKm;
     });
   }
 
@@ -112,10 +119,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     try {
-      // 1. Siapkan data untuk dikirim ke Supabase
+      // Harga total adalah subtotal item + ongkir
+      final double totalPrice = cart.totalPrice + _deliveryFee;
+
       final orderData = {
         'id_user': userId,
-        'harga': cart.totalPrice,
+        'harga': totalPrice, // Kirim harga total
+        'ongkir': _deliveryFee, // Kirim ongkir
         'metode_pembayaran': _paymentMethod,
         'status': 'pending',
         'alamat': _addressController.text,
@@ -165,6 +175,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<Cart>(context);
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final double totalPrice = cart.totalPrice + _deliveryFee;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
@@ -320,40 +336,78 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 10),
+              // Item-item keranjang
               ...cart.items.map(
                 (item) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${item.menu.namaMenu} x ${item.quantity}'),
-                      Text('Rp ${item.subtotal}'),
+                      Expanded(
+                        child: Text('${item.menu.namaMenu} x ${item.quantity}'),
+                      ),
+                      Text(currencyFormatter.format(item.subtotal)),
                     ],
                   ),
                 ),
               ),
               const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Text(
-                    'Rp ${cart.totalPrice}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+              // Subtotal
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Subtotal'),
+                    Text(currencyFormatter.format(cart.totalPrice)),
+                  ],
+                ),
+              ),
+              // Ongkos Kirim
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Ongkos Kirim'),
+                    Text(
+                      _pickedLocation == null
+                          ? '-'
+                          : currencyFormatter.format(_deliveryFee),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              const Divider(thickness: 2),
+              // Total
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total Pembayaran',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      currencyFormatter.format(totalPrice),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _placeOrder,
+                  onPressed:
+                      _isLoading || cart.items.isEmpty ? null : _placeOrder,
                   child:
                       _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)

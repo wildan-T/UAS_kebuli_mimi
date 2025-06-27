@@ -25,7 +25,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Ambil data profil pemesan saat halaman dibuka
     _userFuture = context.read<UserService>().getUserProfile(
       widget.order.idUser,
     );
@@ -38,7 +37,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
         orderId: widget.order.id,
         newStatus: newStatus,
       );
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -46,7 +44,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // Kembali ke halaman sebelumnya dan kirim sinyal untuk refresh
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -56,9 +53,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -99,15 +94,18 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // --- PERBAIKAN DI SINI: Panggil _buildSummaryCard ---
+                _buildSummaryCard(),
+                const SizedBox(height: 16),
                 _buildCustomerInfoCard(user),
                 const SizedBox(height: 16),
                 _buildDeliveryInfoCard(),
                 const SizedBox(height: 16),
-                _buildOrderItemsCard(context),
+                _buildOrderItemsCard(),
                 const SizedBox(height: 16),
                 _buildOrderNotesCard(),
                 const SizedBox(height: 16),
-                _buildPaymentInfoCard(context),
+                _buildPaymentInfoCard(),
                 const SizedBox(height: 16),
                 if (widget.order.status != 'completed' &&
                     widget.order.status != 'cancelled')
@@ -120,25 +118,51 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) => Padding(
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    Color? valueColor,
+    bool isBold = false,
+  }) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4.0),
     child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: 120,
           child: Text(label, style: const TextStyle(color: Colors.grey)),
         ),
+        const Text(': '),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+              color: valueColor,
+            ),
           ),
         ),
       ],
     ),
   );
 
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'processing':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   Widget _buildCustomerInfoCard(UserModel user) => Card(
+    elevation: 2,
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -146,14 +170,15 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
         children: [
           Text('Data Pemesan', style: Theme.of(context).textTheme.titleLarge),
           const Divider(height: 24),
-          _buildInfoRow('Nama:', user.nama),
-          _buildInfoRow('No. Telepon:', user.no_telepon),
+          _buildInfoRow('Nama', user.nama),
+          _buildInfoRow('No. Telepon', user.no_telepon),
         ],
       ),
     ),
   );
 
   Widget _buildDeliveryInfoCard() => Card(
+    elevation: 2,
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -177,7 +202,8 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 : '-',
           ),
           const SizedBox(height: 16),
-          if (widget.order.latitude != null && widget.order.longitude != null)
+          if (widget.order.latitude != null &&
+              widget.order.longitude != null) ...[
             SizedBox(
               height: 200,
               child: FlutterMap(
@@ -211,25 +237,27 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 ],
               ),
             ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.open_in_new),
-              label: const Text('Buka di Aplikasi Peta'),
-              onPressed:
-                  () => _launchMaps(
-                    widget.order.latitude,
-                    widget.order.longitude,
-                  ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Buka di Aplikasi Peta'),
+                onPressed:
+                    () => _launchMaps(
+                      widget.order.latitude,
+                      widget.order.longitude,
+                    ),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     ),
   );
 
-  Widget _buildOrderItemsCard(BuildContext context) {
+  Widget _buildOrderItemsCard() {
+    final orderDetails = widget.order.orderDetails;
     return Card(
       elevation: 2,
       child: Padding(
@@ -239,40 +267,30 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
           children: [
             Text('Item Pesanan', style: Theme.of(context).textTheme.titleLarge),
             const Divider(height: 24),
-            if (widget.order.orderDetails == null ||
-                widget.order.orderDetails!.isEmpty)
+            if (orderDetails == null || orderDetails.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('Detail item tidak tersedia untuk pesanan ini.'),
+                child: Text('Detail item tidak tersedia.'),
               )
             else
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: widget.order.orderDetails!.length,
+                itemCount: orderDetails.length,
                 separatorBuilder: (context, index) => const Divider(),
                 itemBuilder: (context, index) {
-                  final detail = widget.order.orderDetails![index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${detail.menu?.namaMenu ?? 'Menu Dihapus'} (x${detail.jumlah})',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        Text(
-                          NumberFormat.currency(
-                            locale: 'id_ID',
-                            symbol: 'Rp ',
-                            decimalDigits: 0,
-                          ).format(detail.subtotal),
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ],
+                  final detail = orderDetails[index];
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      '${detail.menu?.namaMenu ?? 'Menu Dihapus'} (x${detail.jumlah})',
+                    ),
+                    trailing: Text(
+                      NumberFormat.currency(
+                        locale: 'id_ID',
+                        symbol: 'Rp ',
+                        decimalDigits: 0,
+                      ).format(detail.subtotal),
                     ),
                   );
                 },
@@ -309,7 +327,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     ),
   );
 
-  Widget _buildPaymentInfoCard(BuildContext context) {
+  Widget _buildPaymentInfoCard() {
     return Card(
       elevation: 2,
       child: Padding(
@@ -324,7 +342,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
             const Divider(height: 24),
             _buildInfoRow('Metode:', widget.order.metodePembayaran),
             const SizedBox(height: 16),
-            // Tampilkan bukti pembayaran yang sudah ada
             if (widget.order.fotoPembayaran != null &&
                 widget.order.fotoPembayaran!.isNotEmpty) ...[
               const Text(
@@ -337,7 +354,13 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
               const SizedBox(height: 12),
               Center(child: Image.network(widget.order.fotoPembayaran!)),
               const SizedBox(height: 16),
-            ],
+            ] else if (widget.order.metodePembayaran != 'COD')
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text('Bukti pembayaran belum diunggah.'),
+                ),
+              ),
           ],
         ),
       ),
@@ -349,15 +372,11 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        // crossAxisAlignment.stretch akan membuat semua child di dalam Column
-        // meregang memenuhi lebar parent-nya.
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Aksi Admin', style: Theme.of(context).textTheme.titleLarge),
           const Divider(height: 24),
           if (_isLoading) const LoadingIndicator(),
-
-          // Menggunakan collection-if untuk menampilkan tombol secara kondisional
           if (!_isLoading) ...[
             if (widget.order.status == 'processing') ...[
               ElevatedButton.icon(
@@ -366,7 +385,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
-                  iconColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   textStyle: const TextStyle(
                     fontSize: 16,
@@ -375,10 +393,8 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 ),
                 onPressed: () => _updateStatus('completed'),
               ),
-              // Beri jarak jika kedua tombol mungkin muncul bersamaan
               if (widget.order.status == 'pending') const SizedBox(height: 12),
             ],
-
             if (widget.order.status == 'pending' ||
                 widget.order.status == 'processing') ...[
               ElevatedButton.icon(
@@ -387,7 +403,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
-                  iconColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   textStyle: const TextStyle(
                     fontSize: 16,
@@ -397,9 +412,72 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 onPressed: () => _updateStatus('cancelled'),
               ),
             ],
+            if (widget.order.status != 'pending' &&
+                widget.order.status != 'processing')
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Center(
+                  child: Text(
+                    'Tidak ada aksi yang tersedia untuk status "${widget.order.status}".',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ],
       ),
     ),
   );
+
+  Widget _buildSummaryCard() {
+    final dateFormat = DateFormat('dd MMMM HH:mm', 'id_ID');
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final double subtotal = widget.order.harga - (widget.order.ongkir ?? 0);
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Ringkasan', style: Theme.of(context).textTheme.titleLarge),
+            const Divider(height: 24),
+            _buildInfoRow(
+              'ID Pesanan:',
+              '#${widget.order.id.toString().padLeft(4, '0')}',
+            ),
+            _buildInfoRow(
+              'Tanggal:',
+              dateFormat.format(widget.order.createdAt),
+            ),
+            _buildInfoRow(
+              'Status:',
+              widget.order.status.toUpperCase(),
+              valueColor: _getStatusColor(widget.order.status),
+            ),
+            const Divider(),
+            _buildInfoRow('Subtotal Item:', currencyFormatter.format(subtotal)),
+            _buildInfoRow(
+              'Ongkos Kirim:',
+              currencyFormatter.format(widget.order.ongkir ?? 0),
+            ),
+            const Divider(thickness: 1.5),
+            _buildInfoRow(
+              'Total Harga:',
+              currencyFormatter.format(widget.order.harga),
+              isBold: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

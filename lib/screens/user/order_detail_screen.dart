@@ -150,6 +150,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               valueColor: _getStatusColor(widget.order.status),
             ),
             _buildInfoRow(
+              'Ongkir:',
+              NumberFormat.currency(
+                locale: 'id_ID',
+                symbol: 'Rp ',
+                decimalDigits: 0,
+              ).format(widget.order.ongkir),
+            ),
+            _buildInfoRow(
               'Total Harga:',
               NumberFormat.currency(
                 locale: 'id_ID',

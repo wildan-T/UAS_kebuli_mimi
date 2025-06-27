@@ -14,6 +14,7 @@ class Order {
   final String? catatanPesanan;
   final double? latitude;
   final double? longitude;
+  final double? ongkir;
 
   Order({
     required this.id,
@@ -29,6 +30,7 @@ class Order {
     this.catatanPesanan,
     this.latitude,
     this.longitude,
+    this.ongkir,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -45,6 +47,7 @@ class Order {
       catatanPesanan: json['catatan_pesanan'],
       latitude: json['latitude']?.toDouble(),
       longitude: json['longitude']?.toDouble(),
+      ongkir: (json['ongkir'] ?? 0.0).toDouble(),
       orderDetails:
           json['order_detail'] != null
               ? (json['order_detail'] as List)

@@ -40,7 +40,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               schema: 'public',
               table: 'orders',
               callback: (payload) {
-                final newOrderId = payload.newRecord?['id'];
+                final newOrderId = payload.newRecord['id'];
                 if (mounted && newOrderId != null) {
                   Fluttertoast.showToast(
                     msg: "Pesanan baru masuk! #$newOrderId",
