@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kebuli_mimi/utils/error_handler.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:kebuli_mimi/models/cart_model.dart';
 import 'package:kebuli_mimi/screens/user/map_picker_screen.dart';
@@ -161,9 +162,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuat pesanan: ${e.toString()}')),
-        );
+        if (mounted) ErrorHandler.showSnackBar(context, e.toString());
       }
     } finally {
       if (mounted) {

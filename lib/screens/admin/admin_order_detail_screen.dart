@@ -5,6 +5,7 @@ import 'package:kebuli_mimi/models/order_model.dart';
 import 'package:kebuli_mimi/models/user_model.dart';
 import 'package:kebuli_mimi/services/order_service.dart';
 import 'package:kebuli_mimi/services/user_service.dart';
+import 'package:kebuli_mimi/utils/error_handler.dart';
 import 'package:kebuli_mimi/widgets/loading_indicator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -48,9 +49,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengubah status: ${e.toString()}')),
-        );
+        if (mounted) ErrorHandler.showSnackBar(context, e.toString());
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -66,9 +65,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tidak dapat membuka aplikasi peta: $e')),
-        );
+        if (mounted) ErrorHandler.showSnackBar(context, e.toString());
       }
     }
   }

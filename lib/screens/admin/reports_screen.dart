@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kebuli_mimi/models/report_model.dart';
 import 'package:kebuli_mimi/services/report_service.dart';
+import 'package:kebuli_mimi/utils/error_handler.dart';
 import 'package:kebuli_mimi/widgets/loading_indicator.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -66,9 +67,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       setState(() => _reports = fullMonthReports);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat laporan: ${e.toString()}')),
-        );
+        if (mounted) ErrorHandler.showSnackBar(context, e.toString());
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

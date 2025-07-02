@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:kebuli_mimi/models/order_model.dart';
 import 'package:kebuli_mimi/services/order_service.dart';
+import 'package:kebuli_mimi/utils/error_handler.dart';
 import 'package:provider/provider.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -73,9 +74,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengunggah bukti: ${e.toString()}')),
-        );
+        if (mounted) ErrorHandler.showSnackBar(context, e.toString());
       }
     } finally {
       if (mounted) {

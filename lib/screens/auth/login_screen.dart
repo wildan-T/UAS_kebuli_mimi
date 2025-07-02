@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kebuli_mimi/services/auth_service.dart';
+import 'package:kebuli_mimi/utils/error_handler.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -44,9 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
+      if (mounted) ErrorHandler.showSnackBar(context, e.toString());
     } finally {
       setState(() => _isLoading = false);
     }

@@ -3,6 +3,7 @@ import 'package:kebuli_mimi/models/menu_model.dart';
 import 'package:kebuli_mimi/screens/admin/menu_form_dialog.dart';
 import 'package:kebuli_mimi/services/menu_service.dart';
 import 'package:intl/intl.dart';
+import 'package:kebuli_mimi/utils/error_handler.dart';
 
 class MenuManagementScreen extends StatefulWidget {
   const MenuManagementScreen({super.key});
@@ -85,7 +86,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
         );
         _loadMenus();
       } catch (e) {
-        _showErrorSnackBar(e.toString());
+        if (mounted) ErrorHandler.showSnackBar(context, e.toString());
       }
     }
   }

@@ -4,6 +4,8 @@ import 'package:kebuli_mimi/services/menu_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import 'package:kebuli_mimi/utils/error_handler.dart';
+
 class MenuFormDialog extends StatefulWidget {
   final Menu? menu;
   final MenuService menuService;
@@ -103,9 +105,7 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-          );
+          if (mounted) ErrorHandler.showSnackBar(context, e.toString());
         }
       } finally {
         if (mounted) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kebuli_mimi/models/user_model.dart';
 import 'package:kebuli_mimi/services/auth_service.dart';
+import 'package:kebuli_mimi/utils/error_handler.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -70,9 +71,8 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     );
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Gagal memperbarui profil: $e')),
-                    );
+                    if (context.mounted)
+                      ErrorHandler.showSnackBar(context, e.toString());
                   }
                 }
               },
@@ -120,9 +120,7 @@ class ProfileScreen extends StatelessWidget {
           const SnackBar(content: Text('Akun Anda telah berhasil dihapus.')),
         );
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal menghapus akun: $e')));
+        ErrorHandler.showSnackBar(context, e.toString());
       }
     }
   }
